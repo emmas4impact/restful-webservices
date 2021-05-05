@@ -2,6 +2,9 @@ package com.empact.restfulwebservices.user;
 
 import java.util.Date;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
 
@@ -9,8 +12,12 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(description="Detailed information about the user")
+@Entity
 public class User {
+	@Id
+	@GeneratedValue
 	private Integer id;
+	
 	@Size(min=2, message="Name should have at least two charater")
 	@ApiModelProperty(notes="Name should have at least two charater.")
 	private String name;
