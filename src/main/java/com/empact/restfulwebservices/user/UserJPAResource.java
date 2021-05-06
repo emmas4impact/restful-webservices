@@ -1,6 +1,7 @@
 package com.empact.restfulwebservices.user;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -23,26 +24,31 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class UserJPAResource {
 	
+
+	
 	@Autowired
-	private UserDaoService service;
+	private UserRepository userRepository;
+	
+	@Autowired
+	private PostRepository postRepository;
 	
 	//retreieve all users
-	@GetMapping("/users")
+	@GetMapping("jpa/users")
 	public List <User> retrieveAllUser(){
-		return service.findAll();
+		return userRepository.findAll();
 		
 	}
 	
 	//retreive user with id
 	
-	@GetMapping("/users/{id}")
-	public EntityModel<User>  retrieveUserWithId(@PathVariable int id){
-		User user =service.findOne(id);
+	@GetMapping("jpa/users/{id}")
+	public EntityModel<Optional<User>>  retrieveUserWithId(@PathVariable int id){
+		Optional<User> user =userRepository.findById(id);
 		if(user==null) {
 			throw new UserNotFoundException("id-"+id);
 		}
 		
-		EntityModel<User> resource = EntityModel.of(user);
+		EntityModel<Optional<User>> resource = EntityModel.of(user);
 		
 		WebMvcLinkBuilder linkTo = 
 				linkTo(methodOn(this.getClass()).retrieveAllUser());
@@ -54,9 +60,9 @@ public class UserJPAResource {
 	//input - details of user
 	//output - created & Return the created URI
 	
-	@PostMapping("/users")
+	@PostMapping("jpa/users")
 	public ResponseEntity<Object> createUser(@Valid @RequestBody User user) {
-		User savedUser = service.save(user);
+		User savedUser = userRepository.save(user);
 		
 		java.net.URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 		.path("/{id}")
@@ -66,15 +72,42 @@ public class UserJPAResource {
 		
 	}
 	
-	@DeleteMapping("/users/{id}")
+	@DeleteMapping("jpa/users/{id}")
 	public void deleteUser(@PathVariable int id){
-		User user =service.deleteById(id);
-		if(user==null) {
-			throw new UserNotFoundException("id-"+id);
-		}
+		userRepository.deleteById(id);
+				
+	}
+	
+	@GetMapping("jpa/users/{id}/posts")
+	public List<Post> retrieveAllUser(@PathVariable int id){
+		Optional<User> userOptional = userRepository.findById(id);
 		
+		if(!userOptional.isPresent()) {
+			throw new UserNotFoundException("id-"+ id);
+		}
+		 return userOptional.get().getPost();
+	}
+	
+	@PostMapping("jpa/users/{id}/posts")
+	public ResponseEntity<Object> createPost(@PathVariable int id,@Valid @RequestBody Post post) {
+		Optional<User> userOptional = userRepository.findById(id);
+		//User savedPost = userRepository.findById(id)
+		if(!userOptional.isPresent()) {
+			throw new UserNotFoundException("id-"+ id);
+		}
+		User user = userOptional.get();
+		post.setUser(user);
+		
+		@Valid Post savedPost = postRepository.save(post);
+		
+		java.net.URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+		.path("/{id}")
+		.buildAndExpand(savedPost.getId())
+		.toUri();
+		return ResponseEntity.created(location).build();
 		
 	}
+	
 	
 
 }

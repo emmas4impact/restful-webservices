@@ -1,12 +1,16 @@
 package com.empact.restfulwebservices.user;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -26,6 +30,12 @@ public class User {
 	@ApiModelProperty(notes="Birthdates can not be in the future.")
 	private Date birthdate;
 	
+	@OneToMany(mappedBy = "user")
+	@JsonIgnore
+	private  List<Post> post;
+	
+	
+
 	protected User() {
 		
 	}
@@ -60,6 +70,12 @@ public class User {
 		this.birthdate = birthdate;
 	}
 	
-	
+	public List<Post> getPost() {
+		return post;
+	}
+
+	public void setPost(List<Post> post) {
+		this.post = post;
+	}
 
 }
